@@ -1,1 +1,80 @@
 
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini API 連携テスト</title>
+    <style>
+        body { font-family: sans-serif; max-width: 600px; margin: 40px auto; padding: 20px; }
+        textarea { width: 100%; height: 100px; margin-bottom: 10px; }
+        button { padding: 10px 20px; cursor: pointer; }
+        #output { margin-top: 20px; padding: 15px; border: 1px solid #ddd; background: #f9f9f9; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+
+    <h2>新しいアイデアを作ろう</h2>
+    
+
+    <textarea id="userInput" placeholder="ここに文字列を入力してください..."></textarea>
+    
+    <br>
+    <button id="sendBtn">発想作成</button>
+
+    <h3>結果：</h3>
+    <div id="output">ここに結果が表示されます</div>
+
+    <script type="importmap">
+      {
+        "imports": {
+          "@google/genai": "https://esm.run/@google/genai"
+        }
+      }
+    </script>
+
+    <script type="module">
+        import { GoogleGenAI } from '@google/genai';
+
+
+        const API_KEY = 'AQ.Ab8RN6JFCfvHowADkrQax72DEiwL31AHoweAfRwpp5VgV-l1sA'; 
+        const ai = new GoogleGenAI({ apiKey: API_KEY });
+
+        document.getElementById('sendBtn').addEventListener('click', async () => {
+            const inputText = document.getElementById('userInput').value;
+            const outputDiv = document.getElementById('output');
+
+            if (!inputText.trim()) {
+                alert('文字を入力してください');
+                return;
+            }
+
+            outputDiv.textContent = '考え中...';
+
+            try {
+                // 「決まっている内容（プロンプト）」と「ユーザーの入力」を組み合わせる
+                const systemPrompt = 
+"你现在是顶级AI提示词架构师\n" 
+"我接下来只告诉你使用场景和用途，你要自动完成以下四件事：\n" 
+"1，补齐我没说出口的隐形需求，风格约束，输出格式。\n" 
+"2，出两个版本：精简通用版和高阶顶配版。\n" 
+"3，用清晰的结构化排版，不废话，不闲聊，不凑字数。\n" 
+"4，自动适配Gemini，chatgpt，Claude，豆包，deepseek，Kimi，文心，讯飞等所有主流AI，规避逻辑漏洞和无效指令。\n" 
+"分别用中文和日语输出提示词。\n" ;
+                
+const response = await ai.models.generateContent({
+    model: 'gemini-2.5-flash',
+    contents: systemPrompt + inputText, // ここに入れる分には日本語でもエラーになりません
+});
+
+                // 届いた結果をHTMLに表示
+                outputDiv.textContent = response.text;
+
+            } catch (error) {
+                console.error(error);
+                outputDiv.textContent = 'エラーが発生しました: ' + error.message;
+            }
+        });
+    </script>
+</body>
+</html>
